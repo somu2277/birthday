@@ -1,25 +1,45 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { Heart, Volume2, Sparkles } from "lucide-react";
 
 export default function WishPage() {
   const navigate = useNavigate();
   const [typedText, setTypedText] = useState("");
+  const [isTypingComplete, setIsTypingComplete] = useState(false);
+  const [showReadingThankYou, setShowReadingThankYou] = useState(false);
+  const [isButtonEnabled, setIsButtonEnabled] = useState(false);
   
   const fullMessage = "I want to take a moment to say Thank You for everything. You are not just my Brother; you are my guide, my protector, and my constant Support. Every Raksha Bandhan reminds me of the beautiful bond we share, and today, on your Happy Birthday, I want to promise that I will always stand by you, just like you have stood by me.";
 
-  // Typing effect
+  // Typing effect with safety timeout fallback
   useEffect(() => {
+    // Safety fallback: auto-enable button after 5.0 seconds at the latest in case of any failures
+    const safetyTimeout = setTimeout(() => {
+      setIsTypingComplete(true);
+      setIsButtonEnabled(true);
+    }, 5000);
+
     let index = 0;
     const interval = setInterval(() => {
       setTypedText((prev) => prev + fullMessage.charAt(index));
       index++;
       if (index >= fullMessage.length) {
         clearInterval(interval);
+        clearTimeout(safetyTimeout);
+        setIsTypingComplete(true);
+        setShowReadingThankYou(true);
+        setTimeout(() => {
+          setShowReadingThankYou(false);
+          setIsButtonEnabled(true);
+        }, 1200);
       }
     }, 15);
-    return () => clearInterval(interval);
+
+    return () => {
+      clearInterval(interval);
+      clearTimeout(safetyTimeout);
+    };
   }, []);
 
   // Format typed text with golden highlighted keywords
@@ -72,9 +92,9 @@ export default function WishPage() {
   return (
     <div
       style={{
-        width: "100vw",
+        width: "100%",
         minHeight: "100vh",
-        background: "linear-gradient(to bottom, #081126 0%, #03060c 100%)",
+        background: "transparent",
         color: "#FFF8EE",
         position: "relative",
         overflowX: "hidden",
@@ -244,6 +264,7 @@ export default function WishPage() {
         >
           {/* Stationery cream paper card */}
           <div 
+            className="wish-card-inner"
             style={{
               backgroundColor: "#FFF8EE",
               borderRadius: "14px",
@@ -315,23 +336,70 @@ export default function WishPage() {
           </p>
         </div>
 
+        {/* Optional "Thank you for reading ❤️" badge */}
+        <AnimatePresence>
+          {showReadingThankYou && (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              style={{
+                fontSize: "0.95rem",
+                color: "#F5C542",
+                fontWeight: "600",
+                marginBottom: "16px",
+                display: "flex",
+                alignItems: "center",
+                gap: "4px",
+                textShadow: "0 0 8px rgba(245,197,66,0.3)"
+              }}
+            >
+              ✨ Thank you for reading ❤️
+            </motion.div>
+          )}
+        </AnimatePresence>
+
         {/* 7. Cake Decorator Redirect Button */}
         <motion.button
           onClick={() => navigate("/decorate")}
-          whileHover={{ scale: 1.04, y: -2 }}
-          whileTap={{ scale: 0.96 }}
-          className="premium-btn interactive-item animate-pulse-glow"
+          disabled={!isButtonEnabled}
+          whileHover={isButtonEnabled ? { scale: 1.03 } : {}}
+          whileTap={isButtonEnabled ? { scale: 0.97 } : {}}
+          animate={isButtonEnabled ? {
+            y: [0, -10, 0]
+          } : {}}
+          transition={isButtonEnabled ? { type: "spring", stiffness: 300, damping: 15 } : {}}
+          className={isButtonEnabled ? "premium-btn interactive-item animate-pulse-glow" : ""}
           style={{
             display: "flex",
             alignItems: "center",
             gap: "8px",
-            padding: "12px 36px"
+            padding: "12px 36px",
+            opacity: isButtonEnabled ? 1 : 0.5,
+            cursor: isButtonEnabled ? "pointer" : "not-allowed",
+            backgroundColor: isButtonEnabled ? "linear-gradient(135deg, #ffdf7e 0%, #fbbf24 100%)" : "rgba(255,255,255,0.08)",
+            color: isButtonEnabled ? "#111827" : "rgba(255,255,255,0.3)",
+            border: isButtonEnabled ? "none" : "1.5px solid rgba(255,255,255,0.1)",
+            borderRadius: "9999px",
+            fontWeight: 600,
+            fontSize: "1.05rem",
+            boxShadow: isButtonEnabled ? "0 14px 35px rgba(251, 191, 36, 0.55)" : "none"
           }}
         >
           <Sparkles size={16} />
           🎂 Decorate Your Birthday Cake
         </motion.button>
       </div>
+      <style>{`
+        @media (max-width: 480px) {
+          .wish-card-inner {
+            padding: 24px 16px !important;
+          }
+          .glassmorphism {
+            padding: 16px 20px !important;
+          }
+        }
+      `}</style>
     </div>
   );
 }

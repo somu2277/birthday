@@ -3,8 +3,9 @@ import { Routes, Route } from "react-router-dom";
 
 // Components
 import Navbar from "./components/Navbar.jsx";
-import AudioPlayer from "./components/AudioPlayer";
+
 import BackgroundEffects from "./components/BackgroundEffects";
+import BalloonDecoration from "./components/Balloons/BalloonDecoration";
 
 // Pages
 import Home from "./pages/Home";
@@ -21,11 +22,13 @@ export default function AppRoutes() {
       {/* Background layer */}
       <BackgroundEffects />
 
+      {/* Global Balloon Decoration Layer */}
+      <BalloonDecoration />
+
       {/* Global Navbar Header */}
       <Navbar />
 
-      {/* Global Audio Controller */}
-      <AudioPlayer volumeBoostTriggered={false} />
+
 
       {/* Main Pages Content Frame */}
       <main style={{ position: "relative", zIndex: 10 }}>

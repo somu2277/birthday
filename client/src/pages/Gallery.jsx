@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Plus, X, Maximize2, Image as ImageIcon, ChevronLeft, ChevronRight, Upload } from "lucide-react";
-import { galleryImages as localGallery } from "../data/gallery";
+const localGallery = [];
 
 export default function Gallery() {
   const [gallery, setGallery] = useState(localGallery);
@@ -14,7 +14,7 @@ export default function Gallery() {
   }, []);
 
   const fetchGallery = () => {
-    fetch("/api/gallery")
+    fetch(`${import.meta.env.VITE_API_URL}/api/memories`)
       .then(res => {
         if (!res.ok) throw new Error("API failed");
         return res.json();
@@ -38,7 +38,7 @@ export default function Gallery() {
     formData.append("caption", "Captured moment of our friendship.");
     formData.append("category", "uploads");
 
-    fetch("/api/upload", {
+    fetch(`${import.meta.env.VITE_API_URL}/api/upload`,  {
       method: "POST",
       body: formData
     })

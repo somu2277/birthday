@@ -16,7 +16,7 @@ export default function Letter() {
     if (!message.trim()) return;
 
     setIsSubmitting(true);
-    fetch("/api/message", {
+    fetch(`${import.meta.env.VITE_API_URL}/api/message`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ name, content: message })

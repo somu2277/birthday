@@ -1,44 +1,11 @@
 import fs from "fs";
 import path from "path";
+import { fileURLToPath } from "url";
+import mongoose from "mongoose";
+import Memory from "../models/Memory.js";
 
-// Seed data
-let memories = [
-  {
-    id: 1,
-    date: "October 2021",
-    title: "The Beginning of an Amazing Bond",
-    description: "It started with a simple project collaboration, and we quickly realized we clicked perfectly. Your guidance and positive attitude set the foundation for our friendship.",
-    category: "work"
-  },
-  {
-    id: 2,
-    date: "March 2022",
-    title: "Late Night Coding Sessions",
-    description: "Remember when we stayed up till 4 AM debugging that obscure memory leak? We were exhausted but laughing the entire time. Those nights defined our shared grit.",
-    category: "adventure"
-  },
-  {
-    id: 3,
-    date: "August 2022",
-    title: "The Unplanned Road Trip",
-    description: "Taking off on a whim with no hotel booked, just a playlist of our favorite songs and a quest for the best highway diner. Absolutely unforgettable vibes.",
-    category: "travel"
-  },
-  {
-    id: 4,
-    date: "January 2024",
-    title: "Celebrating Your Big Win",
-    description: "When you landed that major milestone, celebrating together felt like a win for both of us. Seeing you succeed is always one of my favorite things.",
-    category: "celebration"
-  },
-  {
-    id: 5,
-    date: "June 2025",
-    title: "Through Thick and Thin",
-    description: "When things got tough, you were the first person to offer support. No judgment, just pure loyalty and sound advice. You're more than just a friend; you're family.",
-    category: "support"
-  }
-];
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 let galleryImages = [
   {
@@ -87,15 +54,93 @@ let galleryImages = [
 
 let messages = [];
 
-// Controllers
+// Fetch all memories from MongoDB Atlas
 export const getMemories = async (req, res) => {
+  if (mongoose.connection.readyState !== 1) {
+    console.error("Database offline or disconnected. Cannot serve memories.");
+    return res.status(500).json({ success: false, message: "Database connection is offline." });
+  }
+
   try {
-    res.status(200).json(memories);
+    let list = await Memory.find().sort({ position: 1, createdAt: -1 });
+
+    const sampleSeed = [
+      {
+        title: "First Pic",
+        date: "October 2021",
+        description: "It started with a simple project collaboration, and we quickly realized we clicked perfectly. Your guidance and positive attitude set the foundation for our friendship.",
+        category: "work",
+        image: "/images/gallery/memory1.jpeg",
+        position: 0
+      },
+      {
+        title: "Blessed Bond",
+        date: "March 2022",
+        description: "Remember when we stayed up till 4 AM debugging that obscure memory leak? We were exhausted but laughing the entire time. Those nights defined our grit.",
+        category: "adventure",
+        image: "/images/gallery/memory3.jpeg",
+        position: 1
+      },
+      {
+        title: "The Unplanned Trip",
+        date: "August 2022",
+        description: "Taking off on a whim with no hotel booked, just a playlist of our favorite songs and a quest for the best highway diner. Absolutely unforgettable vibes.",
+        category: "travel",
+        image: "/images/gallery/memory2.jpeg",
+        position: 2
+      },
+      {
+        title: "Temple Vibes",
+        date: "January 2024",
+        description: "When you landed that major milestone, celebrating together felt like a win for both of us. Seeing you succeed is always one of my favorite things.",
+        category: "celebration",
+        image: "/images/gallery/memory4.jpeg",
+        position: 3
+      },
+      {
+        title: "Best Company",
+        date: "June 2025",
+        description: "When things got tough, you were the first person to offer support. No judgment, just pure loyalty and sound advice. You're more than just a friend; you're family.",
+        category: "support",
+        image: "/images/gallery/memory5.jpeg",
+        position: 4
+      },
+      {
+        title: "Timeless Moments",
+        date: "July 2026",
+        description: "Always standing by each other and sharing the best laughs. Looking forward to many more milestones together.",
+        category: "chat",
+        image: "/images/gallery/memory6.jpeg",
+        position: 5
+      }
+    ];
+
+    // Seed exactly 6 sample memories if database returns empty
+    if (list.length === 0) {
+      console.log("Database contains 0 memories. Seeding exactly 6 sample memories...");
+      list = await Memory.insertMany(sampleSeed);
+      console.log(`✓ Seeded ${list.length} memories into MongoDB Atlas`);
+    } else if (list.length < 6) {
+      console.log(`Database has only ${list.length} memories. Checking for missing positions...`);
+      for (let pos = 0; pos < 6; pos++) {
+        const exists = list.some(m => m.position === pos);
+        if (!exists) {
+          console.log(`Position ${pos} is missing in DB. Restoring...`);
+          await Memory.create(sampleSeed[pos]);
+        }
+      }
+      // Re-fetch to get all 6
+      list = await Memory.find().sort({ position: 1, createdAt: -1 });
+    }
+
+    res.status(200).json({ success: true, memories: list });
   } catch (error) {
-    res.status(500).json({ message: "Error fetching memories", error: error.message });
+    console.error("Database query failed. Error:", error.message);
+    res.status(500).json({ success: false, message: "Failed to retrieve memories from database.", error: error.message });
   }
 };
 
+// Gallery image endpoints (read-only list placeholder)
 export const getGallery = async (req, res) => {
   try {
     res.status(200).json(galleryImages);
@@ -104,6 +149,7 @@ export const getGallery = async (req, res) => {
   }
 };
 
+// Birthday messages endpoints
 export const postMessage = async (req, res) => {
   try {
     const { name, content } = req.body;
@@ -117,20 +163,18 @@ export const postMessage = async (req, res) => {
       createdAt: new Date()
     };
     messages.push(newMessage);
-    console.log("New birthday message received:", newMessage);
     res.status(201).json({ message: "Message received successfully", data: newMessage });
   } catch (error) {
     res.status(500).json({ message: "Error saving message", error: error.message });
   }
 };
 
+// Old simple image upload endpoint (compatibility wrapper)
 export const postUpload = async (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({ message: "No image file uploaded" });
     }
-    
-    // Add uploaded file to gallery
     const newImage = {
       id: galleryImages.length + 1,
       title: req.body.title || "Uploaded Memory",
@@ -139,9 +183,8 @@ export const postUpload = async (req, res) => {
       category: req.body.category || "uploads"
     };
     galleryImages.push(newImage);
-
     res.status(201).json({
-      message: "Image uploaded and added to gallery successfully",
+      message: "Image uploaded and added successfully",
       imageUrl: newImage.imageUrl,
       data: newImage
     });

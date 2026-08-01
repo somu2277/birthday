@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Calendar, Briefcase, Compass, Plane, Trophy, HeartHandshake } from "lucide-react";
-import { memories as localMemories } from "../data/memories";
+const localMemories = [];
 
 const getCategoryIcon = (category) => {
   switch (category) {
@@ -29,7 +29,7 @@ export default function Journey() {
   const [memories, setMemories] = useState(localMemories);
 
   useEffect(() => {
-    fetch("/api/memories")
+    fetch(`${import.meta.env.VITE_API_URL}/api/memories`)
       .then(res => {
         if (!res.ok) throw new Error("API failed");
         return res.json();

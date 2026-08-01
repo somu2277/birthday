@@ -203,6 +203,7 @@ export default function LetterPage() {
         {envelopeState === "expanded" && (
           <motion.div
             key="expanded-letter"
+            className="letter-expanded-card"
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             style={{
@@ -382,6 +383,13 @@ export default function LetterPage() {
           </motion.span>
         ))}
       </div>
+      <style>{`
+        @media (max-width: 480px) {
+          .letter-expanded-card {
+            padding: 24px 16px 20px !important;
+          }
+        }
+      `}</style>
     </div>
   );
 }

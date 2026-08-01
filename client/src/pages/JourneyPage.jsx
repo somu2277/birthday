@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { X, ChevronLeft, ChevronRight, Compass } from "lucide-react";
 import WorldMap from "../components/WorldMap";
 import { useAdventure } from "../context/AdventureContext";
-import { memories } from "../data/memories";
+const memories = [];
 
 export default function JourneyPage() {
   const navigate = useNavigate();
@@ -183,7 +183,7 @@ export default function JourneyPage() {
                   height: "220px",
                   borderRadius: "16px",
                   overflow: "hidden",
-                  backgroundImage: "url(https://picsum.photos/900/1200?random=1)",
+                  backgroundImage: "linear-gradient(135deg, var(--color-purple), var(--color-gold))",
                   backgroundSize: "cover",
                   backgroundPosition: "center",
                   border: "1.5px solid var(--glass-border)",

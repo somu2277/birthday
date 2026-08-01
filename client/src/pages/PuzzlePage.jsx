@@ -94,7 +94,7 @@ export default function PuzzlePage() {
       confetti({
         particleCount: 120,
         spread: 70,
-        colors: ["#F5C542", "#3B82F6"]
+        colors: ["#FFE28A", "#F5C542", "#E2A1A1", "#F0ECE6", "#FFFDF0"]
       });
     }
   };

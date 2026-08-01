@@ -51,14 +51,42 @@ export default function CakeDecorator() {
   const triggerBlowOutEffects = () => {
     setCandlesBlown(true);
     setDecorStep(7);
-    
+
     // Confetti burst
     confetti({
       particleCount: 130,
       spread: 90,
       origin: { y: 0.6 },
-      colors: ["#F4C542", "#FF8FB8", "#A76BFF", "#FFFFFF"]
+      colors: ["#FFE28A", "#F4C542", "#E2A1A1", "#F0ECE6", "#FFFDF0"]
     });
+
+    // Staggered continuous fireworks show
+    const duration = 5 * 1000;
+    const animationEnd = Date.now() + duration;
+    const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 1000 };
+
+    const randomInRange = (min, max) => Math.random() * (max - min) + min;
+
+    const interval = setInterval(function() {
+      const timeLeft = animationEnd - Date.now();
+
+      if (timeLeft <= 0) {
+        return clearInterval(interval);
+      }
+
+      const particleCount = 50 * (timeLeft / duration);
+
+      confetti({
+        ...defaults,
+        particleCount,
+        origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 }
+      });
+      confetti({
+        ...defaults,
+        particleCount,
+        origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 }
+      });
+    }, 250);
   };
 
   // Staggered candle offset coordinates
@@ -82,7 +110,7 @@ export default function CakeDecorator() {
   return (
     <div
       style={{
-        width: "100vw",
+        width: "100%",
         minHeight: "100vh",
         background: "#080C24",
         color: "#FFF8F0",
@@ -142,7 +170,7 @@ export default function CakeDecorator() {
         }}
       >
         {/* LEFT COLUMN: Cake Stand & Visual Renderer */}
-        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", minWidth: "320px", position: "relative" }}>
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", width: "100%", maxWidth: "320px", position: "relative" }}>
           
           {/* Spotlight behind cake stand */}
           <div style={{ position: "absolute", bottom: "30px", width: "240px", height: "240px", background: "radial-gradient(circle, rgba(244,197,66,0.12) 0%, transparent 70%)", filter: "blur(20px)", zIndex: 1, pointerEvents: "none" }} />
@@ -150,7 +178,7 @@ export default function CakeDecorator() {
           <motion.div
             animate={{ y: [-4, 4, -4] }}
             transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-            style={{ width: "320px", height: "340px", zIndex: 5 }}
+            style={{ width: "100%", maxWidth: "320px", height: "auto", aspectRatio: "320 / 340", zIndex: 5 }}
           >
             <svg viewBox="0 0 320 340" style={{ width: "100%", height: "100%", overflow: "visible" }}>
               {/* Stand / Pedestal */}
@@ -511,21 +539,27 @@ export default function CakeDecorator() {
                 <p style={{ fontSize: "0.88rem", fontStyle: "italic", color: "#FFB6C1", marginBottom: "24px" }}>
                   "✨ Close your eyes and make a wish..."
                 </p>
-                <button
-                  onClick={triggerBlowOutEffects}
-                  className="premium-btn interactive-item animate-pulse-glow"
-                  style={{
-                    width: "100%",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    gap: "8px",
-                    padding: "12px",
-                    background: "linear-gradient(135deg, #10B981, #059669)"
-                  }}
-                >
-                  💨 Blow the Candles
-                </button>
+                {candlesLit ? (
+                  <button
+                    onClick={triggerBlowOutEffects}
+                    className="premium-btn interactive-item animate-pulse-glow"
+                    style={{
+                      width: "100%",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      gap: "8px",
+                      padding: "12px",
+                      background: "linear-gradient(135deg, #10B981, #059669)"
+                    }}
+                  >
+                    💨 Blow the Candles
+                  </button>
+                ) : (
+                  <div style={{ textAlign: "center", color: "#EF4444", fontSize: "0.9rem", fontWeight: 600 }}>
+                    ⚠️ Please light the candles first!
+                  </div>
+                )}
               </div>
             )}
 
@@ -598,10 +632,13 @@ export default function CakeDecorator() {
 
               <button
                 onClick={() => setDecorStep((prev) => prev + 1)}
+                disabled={decorStep === 4 && candlesCount === 0}
                 className="premium-btn interactive-item"
                 style={{
                   padding: "6px 14px",
-                  fontSize: "0.78rem"
+                  fontSize: "0.78rem",
+                  opacity: (decorStep === 4 && candlesCount === 0) ? 0.5 : 1,
+                  cursor: (decorStep === 4 && candlesCount === 0) ? "not-allowed" : "pointer"
                 }}
               >
                 Next Step

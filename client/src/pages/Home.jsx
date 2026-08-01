@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { useAdventure } from "../context/AdventureContext";
+
 
 export default function Home() {
   const navigate = useNavigate();
-  const { setPlayMusic, isMuted, setIsMuted } = useAdventure();
+  const [isLoading, setIsLoading] = useState(true);
 
   // 10-second countdown for immediate testing and verification
   const [secondsLeft, setSecondsLeft] = useState(10);
@@ -18,13 +18,20 @@ export default function Home() {
   const [mainIdx, setMainIdx] = useState(0);
   const [coolIdx, setCoolIdx] = useState(0);
 
+  // Loader screen timeout
+  useEffect(() => {
+    const loadTimer = setTimeout(() => {
+      setIsLoading(false);
+    }, 2500);
+    return () => clearTimeout(loadTimer);
+  }, []);
+
   useEffect(() => {
     const timer = setInterval(() => {
       setSecondsLeft((prev) => {
         if (prev <= 1) {
           clearInterval(timer);
           setIsFinished(true);
-          setPlayMusic(true);
           return 0;
         }
         return prev - 1;
@@ -40,7 +47,7 @@ export default function Home() {
       clearInterval(timer);
       clearInterval(speechTimer);
     };
-  }, [setPlayMusic]);
+  }, []);
 
   // Local stars, sparkles, and background balloons config
   const stars = Array.from({ length: 15 }).map((_, i) => ({
@@ -51,21 +58,137 @@ export default function Home() {
     duration: Math.random() * 3 + 2.5
   }));
 
-  const backgroundBalloons = Array.from({ length: 4 }).map((_, i) => ({
-    id: i,
-    left: `${15 + i * 22}%`,
-    color: ["#FF8FB8", "#F4C542", "#3B82F6", "#a78bfa"][i],
-    delay: i * 1.5
-  }));
+  const renderUnitDigits = (value, label, isGold) => {
+    const digits = String(value).padStart(2, "0").split("");
+    return (
+      <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+        <div style={{ display: "flex", gap: "4px" }}>
+          <AnimatePresence mode="popLayout">
+            {digits.map((d, index) => (
+              <motion.div
+                key={`${index}-${d}`}
+                initial={{ y: -6, opacity: 0, scale: 0.95 }}
+                animate={{ 
+                  y: 0, 
+                  opacity: 1, 
+                  scale: 1,
+                  boxShadow: isGold ? "0 0 12px rgba(244,197,66,0.35)" : "0 6px 16px rgba(0,0,0,0.35)"
+                }}
+                exit={{ y: 6, opacity: 0, scale: 0.95 }}
+                transition={{ type: "spring", stiffness: 300, damping: 22 }}
+                className="glassmorphism"
+                style={{
+                  width: "28px",
+                  height: "42px",
+                  borderRadius: "8px",
+                  border: isGold ? "1.5px solid var(--color-gold)" : "1px solid rgba(255,255,255,0.08)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  fontSize: "1.35rem",
+                  fontWeight: 800,
+                  color: isGold ? "var(--color-gold)" : "#FFF8F0",
+                  textShadow: isGold ? "0 0 8px rgba(244,197,66,0.4)" : "none"
+                }}
+              >
+                {d}
+              </motion.div>
+            ))}
+          </AnimatePresence>
+        </div>
+        <span 
+          style={{ 
+            fontSize: "0.55rem", 
+            color: isGold ? "var(--color-gold)" : "var(--text-secondary)", 
+            marginTop: "6px", 
+            fontWeight: 700, 
+            letterSpacing: "0.06em" 
+          }}
+        >
+          {label}
+        </span>
+      </div>
+    );
+  };
 
-  const formatUnit = (num) => String(num).padStart(2, "0");
+  if (isLoading) {
+    return (
+      <div 
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          minHeight: "85vh",
+          color: "#FFF8F0",
+          zIndex: 20,
+          position: "relative"
+        }}
+      >
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.5 }}
+          className="glassmorphism"
+          style={{
+            padding: "40px",
+            borderRadius: "24px",
+            border: "1.5px solid var(--glass-border)",
+            boxShadow: "var(--glass-shadow)",
+            textAlign: "center",
+            maxWidth: "400px",
+            width: "90%",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            gap: "24px"
+          }}
+        >
+          {/* Glowing heart or sparkle loader */}
+          <motion.div
+            animate={{ 
+              scale: [1, 1.2, 1],
+              rotate: [0, 180, 360]
+            }}
+            transition={{ 
+              duration: 2, 
+              repeat: Infinity,
+              ease: "easeInOut"
+            }}
+            style={{ fontSize: "3rem", filter: "drop-shadow(0 0 10px rgba(244,197,66,0.5))" }}
+          >
+            ✨
+          </motion.div>
+
+          <div>
+            <h2 style={{ fontSize: "1.5rem", fontWeight: 700, color: "#F4C542", marginBottom: "8px" }}>
+              Loading Surprise...
+            </h2>
+            <p style={{ fontSize: "0.85rem", color: "var(--text-secondary)", fontStyle: "italic" }}>
+              Getting the venue ready for Anna's big day! 🎂
+            </p>
+          </div>
+
+          {/* Simple progress bar */}
+          <div style={{ width: "100%", height: "6px", backgroundColor: "rgba(255,255,255,0.08)", borderRadius: "3px", overflow: "hidden" }}>
+            <motion.div
+              initial={{ width: "0%" }}
+              animate={{ width: "100%" }}
+              transition={{ duration: 2.2, ease: "easeInOut" }}
+              style={{ height: "100%", background: "linear-gradient(90deg, #ffdf7e 0%, #fbbf24 100%)" }}
+            />
+          </div>
+        </motion.div>
+      </div>
+    );
+  }
 
   return (
     <div
       style={{
-        width: "100vw",
+        width: "100%",
         minHeight: "100vh",
-        background: "#080C24",
+        background: "transparent",
         color: "#FFF8F0",
         position: "relative",
         overflowX: "hidden",
@@ -147,153 +270,11 @@ export default function Home() {
         <div style={{ position: "absolute", bottom: 0, right: 0, width: "220px", height: "220px", background: "radial-gradient(circle, rgba(244,197,66,0.08) 0%, transparent 70%)" }} />
       </div>
 
-      {/* 2. Background Floating Balloons */}
-      <div style={{ position: "absolute", inset: 0, pointerEvents: "none", overflow: "hidden", zIndex: 1 }}>
-        {backgroundBalloons.map((b) => (
-          <motion.div
-            key={b.id}
-            initial={{ y: "105vh" }}
-            animate={{ y: "-10vh" }}
-            transition={{ duration: 15, repeat: Infinity, delay: b.delay, ease: "linear" }}
-            style={{
-              position: "absolute",
-              left: b.left,
-              width: "24px",
-              height: "32px",
-              borderRadius: "50%",
-              backgroundColor: b.color,
-              opacity: 0.35,
-              boxShadow: "inset -2px -2px 6px rgba(0,0,0,0.3)"
-            }}
-          />
-        ))}
-      </div>
-
-      {/* 2b. Rising Heart Balloon Release */}
-      <div style={{ position: "absolute", inset: 0, pointerEvents: "none", overflow: "hidden", zIndex: 12 }}>
-        <motion.span
-          initial={{ y: "105vh", x: "45vw", opacity: 0.8 }}
-          animate={{ y: "-10vh", x: ["45vw", "48vw", "43vw", "45vw"] }}
-          transition={{ duration: 14, repeat: Infinity, ease: "easeInOut" }}
-          style={{ position: "absolute", fontSize: "1.8rem", color: "#FF8FB8", textShadow: "0 0 10px #FF8FB8" }}
-        >
-          🎈
-        </motion.span>
-      </div>
-
-      {/* 3. PREMIUM 3D GLOSSY BALLOON CLUSTERS */}
-      {/* Left Balloon Cluster */}
-      <motion.div
-        animate={{ y: [-6, 6, -6] }}
-        transition={{ duration: 4.5, repeat: Infinity, ease: "easeInOut" }}
-        style={{
-          position: "absolute",
-          left: "20px",
-          top: "15%",
-          width: "200px",
-          height: "350px",
-          pointerEvents: "none",
-          zIndex: 9
-        }}
-      >
-        <svg viewBox="0 0 200 350" style={{ width: "100%", height: "100%", overflow: "visible" }}>
-          {/* Sparkles */}
-          <circle cx="40" cy="50" r="2" fill="#F4C542" style={{ filter: "drop-shadow(0 0 3px #F4C542)" }} />
-          <circle cx="160" cy="110" r="2" fill="#FFF" style={{ filter: "drop-shadow(0 0 3px #FFF)" }} />
-
-          {/* Ribbon Strings */}
-          <path d="M 60 90 Q 75 180, 100 280" stroke="#F4C542" strokeWidth="1.2" fill="none" opacity="0.6" />
-          <path d="M 100 80 Q 95 180, 100 280" stroke="#F4C542" strokeWidth="1.2" fill="none" opacity="0.6" />
-          <path d="M 140 100 Q 115 190, 100 280" stroke="#F4C542" strokeWidth="1.2" fill="none" opacity="0.6" />
-          <path d="M 80 130 Q 90 200, 100 280" stroke="#F4C542" strokeWidth="1.2" fill="none" opacity="0.6" />
-          <path d="M 120 140 Q 110 210, 100 280" stroke="#F4C542" strokeWidth="1.2" fill="none" opacity="0.6" />
-
-          {/* Balloon Spheres */}
-          <g style={{ filter: "drop-shadow(0 8px 16px rgba(0,0,0,0.4))" }}>
-            {/* Balloon 1: Purple */}
-            <ellipse cx="60" cy="90" rx="26" ry="34" fill="url(#balloon-purple)" />
-            {/* Balloon 2: Gold */}
-            <ellipse cx="100" cy="80" rx="28" ry="36" fill="url(#balloon-gold)" />
-            {/* Balloon 3: Pink */}
-            <ellipse cx="140" cy="100" rx="26" ry="34" fill="url(#balloon-pink)" />
-            {/* Balloon 4: Rose Gold */}
-            <ellipse cx="80" cy="140" rx="24" ry="32" fill="url(#balloon-rosegold)" />
-            {/* Balloon 5: Transparent Confetti */}
-            <g>
-              <ellipse cx="120" cy="140" rx="25" ry="33" fill="url(#balloon-transparent)" />
-              {/* Internal gold confetti dots */}
-              <circle cx="115" cy="130" r="2.5" fill="#F4C542" />
-              <circle cx="125" cy="145" r="2" fill="#F4C542" />
-              <circle cx="110" cy="140" r="1.5" fill="#F4C542" />
-              <circle cx="128" cy="135" r="2" fill="#F4C542" />
-            </g>
-          </g>
-
-          {/* Floating Gift Box between Left Balloons */}
-          <g transform="translate(85, 230)" style={{ filter: "drop-shadow(0 4px 8px rgba(0,0,0,0.3))" }}>
-            <rect x="0" y="0" width="24" height="22" rx="2" fill="#FF8FB8" />
-            <line x1="12" y1="0" x2="12" y2="22" stroke="#F4C542" strokeWidth="2.5" />
-            <line x1="0" y1="11" x2="24" y2="11" stroke="#F4C542" strokeWidth="2.5" />
-          </g>
-        </svg>
-      </motion.div>
-
-      {/* Right Balloon Cluster */}
-      <motion.div
-        animate={{ y: [6, -6, 6] }}
-        transition={{ duration: 4.8, repeat: Infinity, ease: "easeInOut" }}
-        style={{
-          position: "absolute",
-          right: "20px",
-          top: "15%",
-          width: "200px",
-          height: "350px",
-          pointerEvents: "none",
-          zIndex: 9
-        }}
-      >
-        <svg viewBox="0 0 200 350" style={{ width: "100%", height: "100%", overflow: "visible" }}>
-          {/* Sparkles */}
-          <circle cx="50" cy="110" r="2" fill="#FFF" style={{ filter: "drop-shadow(0 0 3px #FFF)" }} />
-          <circle cx="150" cy="60" r="2" fill="#FF8FB8" style={{ filter: "drop-shadow(0 0 3px #FF8FB8)" }} />
-
-          {/* Ribbon Strings */}
-          <path d="M 60 100 Q 80 190, 100 280" stroke="#F4C542" strokeWidth="1.2" fill="none" opacity="0.6" />
-          <path d="M 100 90 Q 95 180, 100 280" stroke="#F4C542" strokeWidth="1.2" fill="none" opacity="0.6" />
-          <path d="M 140 80 Q 120 180, 100 280" stroke="#F4C542" strokeWidth="1.2" fill="none" opacity="0.6" />
-          <path d="M 80 140 Q 90 210, 100 280" stroke="#F4C542" strokeWidth="1.2" fill="none" opacity="0.6" />
-          <path d="M 120 130 Q 110 200, 100 280" stroke="#F4C542" strokeWidth="1.2" fill="none" opacity="0.6" />
-
-          {/* Balloon Spheres */}
-          <g style={{ filter: "drop-shadow(0 8px 16px rgba(0,0,0,0.4))" }}>
-            {/* Balloon 1: Pink */}
-            <ellipse cx="60" cy="100" rx="26" ry="34" fill="url(#balloon-pink)" />
-            {/* Balloon 2: Purple */}
-            <ellipse cx="100" cy="90" rx="27" ry="35" fill="url(#balloon-purple)" />
-            {/* Balloon 3: Gold */}
-            <ellipse cx="140" cy="80" rx="28" ry="36" fill="url(#balloon-gold)" />
-            {/* Balloon 4: Transparent Confetti */}
-            <g>
-              <ellipse cx="80" cy="140" rx="25" ry="33" fill="url(#balloon-transparent)" />
-              <circle cx="75" cy="130" r="2" fill="#F4C542" />
-              <circle cx="85" cy="142" r="2" fill="#F4C542" />
-              <circle cx="78" cy="148" r="1.5" fill="#F4C542" />
-            </g>
-            {/* Balloon 5: Rose Gold */}
-            <ellipse cx="120" cy="130" rx="24" ry="32" fill="url(#balloon-rosegold)" />
-          </g>
-
-          {/* Floating Gift Box between Right Balloons */}
-          <g transform="translate(90, 220)" style={{ filter: "drop-shadow(0 4px 8px rgba(0,0,0,0.3))" }}>
-            <rect x="0" y="0" width="22" height="20" rx="2" fill="#F4C542" />
-            <line x1="11" y1="0" x2="11" y2="20" stroke="#FF8FB8" strokeWidth="2.5" />
-            <line x1="0" y1="10" x2="22" y2="10" stroke="#FF8FB8" strokeWidth="2.5" />
-          </g>
-        </svg>
-      </motion.div>
+      {/* Global luxury BalloonDecoration is loaded via routes.jsx to render clusters and floaters uniformly */}
 
       {/* 4. Header Logotype & Music Toggle */}
       <div 
+        className="home-duplicate-header"
         style={{
           position: "absolute",
           top: "24px",
@@ -317,25 +298,7 @@ export default function Home() {
           To My Brother 💛
         </span>
 
-        <button
-          onClick={() => {
-            setIsMuted(!isMuted);
-            setPlayMusic(true);
-          }}
-          className="glassmorphism interactive-item"
-          style={{
-            padding: "8px 16px",
-            borderRadius: "9999px",
-            border: "1.5px solid var(--glass-border)",
-            color: "#FFF8F0",
-            fontSize: "0.82rem",
-            fontWeight: 700,
-            cursor: "pointer",
-            outline: "none"
-          }}
-        >
-          {isMuted ? "🔇 Music Muted" : "🎵 Music ON"}
-        </button>
+
       </div>
 
       {/* 5. Three-Column Character & Content layout */}
@@ -506,60 +469,55 @@ export default function Home() {
           </motion.div>
 
           {/* Heading */}
+          <div style={{ position: "relative", marginBottom: "8px", textAlign: "center" }}>
+            {/* Glow backing */}
+            <div style={{ position: "absolute", inset: -10, background: "radial-gradient(circle, rgba(244,197,66,0.3) 0%, transparent 75%)", filter: "blur(8px)", zIndex: -1 }} />
+            <h2
+              className="font-cinematic text-gradient-gold text-glow"
+              style={{ fontSize: "1.9rem", fontWeight: 850, margin: 0, letterSpacing: "0.02em" }}
+            >
+              Happy Birthday, Anna! 🎉
+            </h2>
+          </div>
+
           <h3 
-            className="font-cinematic text-gradient-gold text-glow"
-            style={{ fontSize: "1.45rem", fontWeight: 700, marginBottom: "8px", color: "var(--color-gold)" }}
+            className="font-cinematic text-gradient-purple-pink"
+            style={{ fontSize: "1.1rem", fontWeight: 700, marginBottom: "20px" }}
           >
             ✨ A Little Surprise Is Waiting... ✨
           </h3>
 
           {/* Subtitle */}
-          <p style={{ color: "var(--text-secondary)", fontSize: "0.85rem", marginBottom: "24px", fontWeight: 500 }}>
+          <p style={{ color: "var(--text-secondary)", fontSize: "0.85rem", marginBottom: "28px", fontWeight: 500, textAlign: "center" }}>
             Every second brings you closer to something made with love. 💖
           </p>
 
-          {/* Countdown Cards */}
+          {/* Countdown Cards with Ribbon Decorations */}
           <div 
             style={{ 
+              position: "relative",
+              width: "100%",
               display: "flex", 
-              gap: "10px", 
-              marginBottom: "32px" 
+              gap: "14px", 
+              marginBottom: "32px",
+              justifyContent: "center",
+              alignItems: "center"
             }}
           >
-            {/* Days card */}
-            <div className="glassmorphism" style={{ padding: "8px 12px", borderRadius: "12px", border: "1px solid rgba(255,255,255,0.06)", minWidth: "55px", textAlign: "center" }}>
-              <span style={{ fontSize: "1.2rem", fontWeight: 700 }}>00</span>
-              <div style={{ fontSize: "0.55rem", color: "var(--text-secondary)", marginTop: "2px", fontWeight: 700 }}>DAYS</div>
-            </div>
-            {/* Hours card */}
-            <div className="glassmorphism" style={{ padding: "8px 12px", borderRadius: "12px", border: "1px solid rgba(255,255,255,0.06)", minWidth: "55px", textAlign: "center" }}>
-              <span style={{ fontSize: "1.2rem", fontWeight: 700 }}>00</span>
-              <div style={{ fontSize: "0.55rem", color: "var(--text-secondary)", marginTop: "2px", fontWeight: 700 }}>HOURS</div>
-            </div>
-            {/* Minutes card */}
-            <div className="glassmorphism" style={{ padding: "8px 12px", borderRadius: "12px", border: "1px solid rgba(255,255,255,0.06)", minWidth: "55px", textAlign: "center" }}>
-              <span style={{ fontSize: "1.2rem", fontWeight: 700 }}>00</span>
-              <div style={{ fontSize: "0.55rem", color: "var(--text-secondary)", marginTop: "2px", fontWeight: 700 }}>MINUTES</div>
-            </div>
-            {/* Seconds card */}
-            <motion.div 
-              animate={secondsLeft < 10 && !isFinished ? { scale: [1, 1.05, 1] } : {}}
-              transition={{ duration: 0.5, repeat: Infinity }}
-              className="glassmorphism" 
-              style={{ 
-                padding: "8px 12px", 
-                borderRadius: "12px", 
-                border: "1.5px solid var(--color-gold)", 
-                minWidth: "60px", 
-                textAlign: "center",
-                boxShadow: "0 0 8px rgba(244,197,66,0.15)"
-              }}
-            >
-              <span style={{ fontSize: "1.2rem", fontWeight: 700, color: "var(--color-gold)" }}>
-                {formatUnit(secondsLeft)}
-              </span>
-              <div style={{ fontSize: "0.55rem", color: "var(--color-gold)", marginTop: "2px", fontWeight: 700 }}>SECONDS</div>
-            </motion.div>
+            {/* Decorative Left Ribbon */}
+            <svg width="20" height="20" style={{ position: "absolute", left: "10px", top: "14px", fill: "#F4C542", opacity: 0.8 }} className="desktop-only-ribbon">
+              <path d="M 0 0 L 16 10 L 0 20 L 4 10 Z" />
+            </svg>
+
+            {renderUnitDigits(0, "DAYS", false)}
+            {renderUnitDigits(0, "HOURS", false)}
+            {renderUnitDigits(0, "MINUTES", false)}
+            {renderUnitDigits(secondsLeft, "SECONDS", true)}
+
+            {/* Decorative Right Ribbon */}
+            <svg width="20" height="20" style={{ position: "absolute", right: "10px", top: "14px", fill: "#F4C542", opacity: 0.8 }} className="desktop-only-ribbon">
+              <path d="M 20 0 L 4 10 L 20 20 L 16 10 Z" />
+            </svg>
           </div>
 
           {/* Target Surprise unlocking Button */}
@@ -679,6 +637,26 @@ export default function Home() {
         <span>🎂 Get ready for cuteness overload and lots of beautiful memories! 🎉</span>
         <span>💕</span>
       </div>
+      <style>{`
+        @media (max-width: 1024px) {
+          .desktop-balloons {
+            display: none !important;
+          }
+          .home-duplicate-header {
+            display: none !important;
+          }
+        }
+        @media (max-width: 768px) {
+          .desktop-only-ribbon {
+            display: none !important;
+          }
+        }
+        @media (max-width: 480px) {
+          .glassmorphism {
+            padding: 24px 16px !important;
+          }
+        }
+      `}</style>
     </div>
   );
 }

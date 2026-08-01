@@ -1,7 +1,12 @@
 import express from "express";
 import multer from "multer";
 import path from "path";
-import { getMemories, getGallery, postMessage, postUpload } from "../controllers/apiController.js";
+import { 
+  getMemories, 
+  getGallery, 
+  postMessage, 
+  postUpload 
+} from "../controllers/apiController.js";
 
 const router = express.Router();
 
@@ -18,7 +23,7 @@ const storage = multer.diskStorage({
 
 const upload = multer({
   storage,
-  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
+  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB limit
   fileFilter: (req, file, cb) => {
     const filetypes = /jpeg|jpg|png|gif|webp/;
     const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
@@ -32,7 +37,10 @@ const upload = multer({
   }
 });
 
+// Get Memories (MongoDB)
 router.get("/memories", getMemories);
+
+// Additional endpoints
 router.get("/gallery", getGallery);
 router.post("/message", postMessage);
 router.post("/upload", upload.single("image"), postUpload);

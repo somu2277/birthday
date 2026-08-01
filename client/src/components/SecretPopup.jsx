@@ -16,11 +16,11 @@ export default function SecretPopup() {
         
         if (nextKeys === "gift" || nextKeys === "bday") {
           setIsOpen(true);
-          confetti({
+           confetti({
             particleCount: 80,
             spread: 60,
             origin: { y: 0.6 },
-            colors: ["#fbbf24", "#8b5cf6", "#ec4899"]
+            colors: ["#FFE28A", "#F5C542", "#E2A1A1", "#F0ECE6", "#FFFDF0"]
           });
           setTypedKeys("");
         }

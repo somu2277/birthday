@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronLeft, Maximize2, Image as ImageIcon, Heart, Calendar } from "lucide-react";
-import { memories as localMemories } from "../data/memories";
-import { galleryImages as localGallery } from "../data/gallery";
+const localMemories = [];
+const localGallery = [];
 
 export default function MemoryForest({ onBack }) {
   const [memories, setMemories] = useState(localMemories);
@@ -11,13 +11,13 @@ export default function MemoryForest({ onBack }) {
 
   useEffect(() => {
     // Fetch memories from API
-    fetch("/api/memories")
+    fetch(`${import.meta.env.VITE_API_URL}/api/memories`)
       .then(res => res.json())
       .then(data => { if (data && data.length > 0) setMemories(data); })
       .catch(err => console.log("Using seed memories fallbacks:", err));
 
     // Fetch gallery from API
-    fetch("/api/gallery")
+    fetch(`${import.meta.env.VITE_API_URL}/api/gallery`)
       .then(res => res.json())
       .then(data => { if (data && data.length > 0) setGallery(data); })
       .catch(err => console.log("Using seed gallery fallbacks:", err));

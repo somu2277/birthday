@@ -36,7 +36,7 @@ export default function WishMachine() {
           particleCount: 80,
           spread: 80,
           origin: { y: 0.6 },
-          colors: ["#fbbf24", "#8b5cf6", "#ec4899"]
+          colors: ["#FFE28A", "#F5C542", "#E2A1A1", "#F0ECE6", "#FFFDF0"]
         });
       }
     }, 100);
